@@ -35,7 +35,7 @@ export function punish(ni: NetworkIdentifier, cheat: Cheats): void {
     }
     serverInstance.disconnectClient(ni, `Kicked by §l§4Aniketos§r due to cheating: ${cheat}`);
     // Add your own punishmenet here
-    console.log(`${"[Aniketos]".red} ${ni.getActor()?.getName()} was detected for: ${cheat}`);
+    console.log(`${"[Aniketos]".red} ${ni.getActor()?.getName() ?? "UNKNOWN".magenta} was detected for: ${cheat}`);
 }
 
 export function report(name: string, reason: string): void {
