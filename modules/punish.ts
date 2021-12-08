@@ -30,7 +30,7 @@ const Fatals: Cheats[] = [
 ];
 
 export function punish(ni: NetworkIdentifier, cheat: Cheats): void {
-    if (Fatals.includes(cheat)) {
+    if (Fatals.includes(cheat) && ni) {
         blacklist.banPlayer(ni, cheat);
     }
     serverInstance.disconnectClient(ni, `Kicked by §l§4Aniketos§r due to cheating: ${cheat}`);
