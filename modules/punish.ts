@@ -4,6 +4,7 @@ import { ServerPlayer } from "bdsx/bds/player";
 import { serverInstance } from "bdsx/bds/server";
 import { command } from "bdsx/command";
 import { CxxString } from "bdsx/nativetype";
+import { blacklist } from "../../blacklist/blacklist";
 
 export enum Cheats {
     AirSwim = "Air Swim",
@@ -21,8 +22,17 @@ export enum Cheats {
     Reach = "Reach",
     XpOrb = "Illegal Experience Orb Spawning",
 }
+const Fatals: Cheats[] = [
+    Cheats.Crasher,
+    Cheats.Give,
+    Cheats.InvMove,
+    Cheats.XpOrb,
+];
 
 export function punish(ni: NetworkIdentifier, cheat: Cheats): void {
+    if (Fatals.includes(cheat)) {
+        blacklist.banPlayer(ni, cheat);
+    }
     serverInstance.disconnectClient(ni, `Kicked by §l§4Aniketos§r due to cheating: ${cheat}`);
     // Add your own punishmenet here
     console.log(`${"[Aniketos]".red} ${ni.getActor()?.getName()} was detected for: ${cheat}`);
