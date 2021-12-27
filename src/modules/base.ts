@@ -1,4 +1,5 @@
 import { NetworkIdentifier } from "bdsx/bds/networkidentifier";
+import { Player } from "bdsx/bds/player";
 import { serverInstance } from "bdsx/bds/server";
 import { Event } from "bdsx/eventtarget";
 import { Aniketos } from "../loader";
@@ -9,6 +10,8 @@ export class ModuleConfig {
 }
 
 export abstract class ModuleBase {
+    constructor(public fatal: boolean = false) { }
+
     configModel =  ModuleConfig;
     langModel = () => {};
 
@@ -21,7 +24,6 @@ export abstract class ModuleBase {
             description: this.translate("description")
         }
     }
-    
     translate(str: string, params: string[] = []): string {
         return this.translate(str, params);
     }
@@ -66,13 +68,20 @@ export abstract class ModuleBase {
             player.getActor()!.sendMessage(`§4[Aniketos] §5[${this.info().name}]§r ${this.getCore().translate("base.message.warning")} ${message}`);
         }
     }
+
+    ban(player: Player) {
+        //your own
+    }
     punish(player: NetworkIdentifier, message: string): void {
         const cancelled = this.getCore().events.punish.fire(new Aniketos.ModuleEvent(player, this, message));
         if (!cancelled) {
             if (this.getCore().config["crash-clients"]) {
                 //serverInstance.disconnectClient(player, `Aniketos.hideDisconnectPacket`);
             }
+            if (this.fatal ?? player) {
+                this.ban(player.getActor()!);
+            }
             serverInstance.disconnectClient(player, `§4[Aniketos]§r ${message}`);
         }
-    }    
+    }
 }
