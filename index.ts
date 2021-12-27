@@ -17,19 +17,19 @@ import XpOrb from "./src/modules/world/xp_orb";
 
 export const aniketos = new Aniketos();
 aniketos.loadModule(new AutoClicker);
-aniketos.loadModule(new Crasher);
+aniketos.loadModule(new Crasher(true));
 aniketos.loadModule(new EditionFaker);
 aniketos.loadModule(new Flight);
 aniketos.loadModule(new Freecam);
-aniketos.loadModule(new Give);
-aniketos.loadModule(new InventoryMove);
+aniketos.loadModule(new Give(true));
+aniketos.loadModule(new InventoryMove(true));
 aniketos.loadModule(new Namespoof);
 aniketos.loadModule(new NoSwing);
-aniketos.loadModule(new Nuker);
+// aniketos.loadModule(new Nuker);
 aniketos.loadModule(new Reach);
-aniketos.loadModule(new Spammer);
-aniketos.loadModule(new Toolbox);
-aniketos.loadModule(new XpOrb);
+aniketos.loadModule(new Spammer(true));
+// aniketos.loadModule(new Toolbox(true));
+aniketos.loadModule(new XpOrb(true));
 
 // for (let i = 1; i < 164; i++) {
 //     switch (i) {
