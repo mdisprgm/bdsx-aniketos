@@ -22,7 +22,7 @@ aniketos.loadModule(new EditionFaker);
 aniketos.loadModule(new Flight);
 aniketos.loadModule(new Freecam);
 aniketos.loadModule(new Give(true));
-aniketos.loadModule(new InventoryMove(true));
+// aniketos.loadModule(new InventoryMove(true));
 aniketos.loadModule(new Namespoof);
 aniketos.loadModule(new NoSwing);
 // aniketos.loadModule(new Nuker);
