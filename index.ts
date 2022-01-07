@@ -24,7 +24,7 @@ aniketos.loadModule(new Freecam);
 aniketos.loadModule(new Give(true));
 // aniketos.loadModule(new InventoryMove(true));
 aniketos.loadModule(new Namespoof);
-aniketos.loadModule(new NoSwing);
+// aniketos.loadModule(new NoSwing);
 // aniketos.loadModule(new Nuker);
 aniketos.loadModule(new Reach);
 aniketos.loadModule(new Spammer(true));
