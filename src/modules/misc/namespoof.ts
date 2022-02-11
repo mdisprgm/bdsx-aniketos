@@ -1,8 +1,8 @@
 import { MinecraftPacketIds } from "bdsx/bds/packetids";
-import { DeviceOS } from "bdsx/common";
 import { events } from "bdsx/event";
 import { DB } from "../../utils";
 import { ModuleBase, ModuleConfig } from "../base";
+import { TitleId } from "./edition_faker";
 
 export default class Namespoof extends ModuleBase {
     configModel = class Config extends ModuleConfig {
@@ -17,21 +17,30 @@ export default class Namespoof extends ModuleBase {
 
         punish.generic=Use your real gamertag.
     */};
-    
+
     load(): void {
-        this.listen(events.packetSend(MinecraftPacketIds.PlayStatus), (pk, ni) => {
-            if (pk.status === 3 && DB.getPlayerData(ni, "DeviceOS") !== DeviceOS.PLAYSTATION) {
+        this.listen(events.packetAfter(MinecraftPacketIds.Login), (pk, ni) => {
+            const connreq = pk.connreq;
+            if (connreq && DB.titleId(ni) !== TitleId.NINTENDO.toString() && DB.titleId(ni) !== TitleId.PLAYSTATION.toString()) {
                 const gamertag = DB.gamertag(ni);
-                const player = ni.getActor()!;
-                const name = player.getName();
-                if (name !== gamertag) {
+                const name = connreq.getJsonValue()?.ThirdPartyName;
+                if (name && name !== gamertag) {
                     this.suspect(ni, this.translate("suspect.overriden", [gamertag, name]));
                     if (this.getConfig().punish) {
                         this.punish(ni, this.translate("punish.generic"));
                     } else {
-                        player.setName(gamertag);
+                        DB.setPlayerData(ni, "Namespoof.real", gamertag);
                     }
                 }
+            }
+        });
+        this.listen(events.packetSend(MinecraftPacketIds.PlayStatus), (pk, ni) => {
+            if (pk.status === 3) {
+                const real = DB.getPlayerData(ni, "Namespoof.real");
+                if (real) {
+                    ni.getActor()!.setName(real);
+                }
+
             }
         });
     }
