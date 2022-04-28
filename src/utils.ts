@@ -3,18 +3,19 @@ import { Packet } from "bdsx/bds/packet";
 import { MinecraftPacketIds } from "bdsx/bds/packetids";
 import { LevelChunkPacket, LoginPacket, PlayerAuthInputPacket } from "bdsx/bds/packets";
 import { PlayerPermission, ServerPlayer } from "bdsx/bds/player";
-import { serverInstance } from "bdsx/bds/server";
+import { CANCEL } from "bdsx/common";
 import { events } from "bdsx/event";
+import { bedrockServer } from "bdsx/launcher";
 import { bool_t, uint8_t } from "bdsx/nativetype";
-import { ProcHacker } from "bdsx/prochacker";
+import { procHacker } from "bdsx/prochacker";
 
-export const LL = ProcHacker.load(__dirname + "/pdb.ini", [
-    "?addAction@InventoryTransaction@@QEAAXAEBVInventoryAction@@@Z",
-    "?getInput@PlayerAuthInputPacket@@QEBA_NW4InputData@1@@Z",
-    "?changeDimension@ServerPlayer@@UEAAXV?$AutomaticID@VDimension@@H@@_N@Z",
-]);
+const serverInstance = bedrockServer.serverInstance;
 
 export namespace Utils {
+    export type ReturnPromise<T extends (...args: any[]) => number | CANCEL | void | Promise<void>> = T extends (...args: infer ARGS) => infer RET
+        ? (...args: ARGS) => RET | Promise<void>
+        : never;
+
     export function crashClient(ni: NetworkIdentifier) {
         let pk = LevelChunkPacket.create();
         pk.cacheEnabled = true;
@@ -22,7 +23,7 @@ export namespace Utils {
         pk.dispose();
     }
     export function getCurrentTick(): number {
-        return serverInstance.minecraft.getLevel().getCurrentTick();
+        return bedrockServer.level.getCurrentTick();
     }
     export function getOnlineOperators(): ServerPlayer[] {
         return serverInstance.getPlayers().filter(p => p.getPermissionLevel() === PlayerPermission.OPERATOR);
@@ -70,7 +71,7 @@ export namespace Utils {
         }
         return ret.join("%");
     }
-    export const getAuthInputData = LL.js("?getInput@PlayerAuthInputPacket@@QEBA_NW4InputData@1@@Z", bool_t, null, PlayerAuthInputPacket, uint8_t);
+    export const getAuthInputData = procHacker.js("?getInput@PlayerAuthInputPacket@@QEBA_NW4InputData@1@@Z", bool_t, null, PlayerAuthInputPacket, uint8_t);
     export class PlayerDB {
         private db = new Map<NetworkIdentifier, Record<string, any>>();
         constructor() {

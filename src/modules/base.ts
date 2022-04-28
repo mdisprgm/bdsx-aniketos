@@ -1,8 +1,8 @@
 import { CommandEnum, CommandOutput } from "bdsx/bds/command";
 import { CommandOrigin } from "bdsx/bds/commandorigin";
 import { NetworkIdentifier } from "bdsx/bds/networkidentifier";
-import { serverInstance } from "bdsx/bds/server";
 import { Event } from "bdsx/eventtarget";
+import { bedrockServer } from "bdsx/launcher";
 import { Type } from "bdsx/nativetype";
 import { Aniketos } from "../loader";
 import { DB, Utils } from "../utils";
@@ -40,14 +40,14 @@ export abstract class ModuleBase {
             description: this.translate("description")
         }
     }
-    
+
     translate(str: string, params: string[] = []): string {
         return this.translate(str, params);
     }
     log(message: string): void {
         this.log(message);
     }
-    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: T): void {
+    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void {
         this.listen(event, listener);
     }
     registerCommand<PARAMS extends Record<string, Type<any>|[Type<any>, CommandFieldOptions|boolean]>>(
@@ -101,7 +101,7 @@ export abstract class ModuleBase {
             if (this.getCore().config["crash-clients"]) {
                 Utils.crashClient(player);
             }
-            serverInstance.disconnectClient(player, `§4[Aniketos]§r ${message}`);
+            bedrockServer.serverInstance.disconnectClient(player, `§4[Aniketos]§r ${message}`);
         }
-    }    
+    }
 }

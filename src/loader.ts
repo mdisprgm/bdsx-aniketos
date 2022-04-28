@@ -3,7 +3,6 @@ import vm = require("vm");
 import path = require("path");
 import { CommandPermissionLevel } from "bdsx/bds/command";
 import { NetworkIdentifier } from "bdsx/bds/networkidentifier";
-import { serverInstance } from "bdsx/bds/server";
 import { command } from "bdsx/command";
 import { CANCEL } from "bdsx/common";
 import { events } from "bdsx/event";
@@ -14,6 +13,7 @@ import { ModuleBase, ModuleConfig } from "./modules/base";
 import { DB, Utils } from "./utils";
 var JSONC = require("comment-json");
 
+const serverInstance = bedrockServer.serverInstance;
 interface WhitelistEntry {
     type: "address" | "gamertag" | "uuid" | "xuid";
     value: string;
@@ -103,7 +103,7 @@ export class Aniketos {
         command.output.moduleDisable=Module %s has been disabled.
         command.output.moduleReload=Reloaded all modules.
         command.output.configChange=%s has been changed.
-        
+
         module.command.desc.generic=Configures module %s of Aniketos.
     */};
 
@@ -135,7 +135,7 @@ export class Aniketos {
             // Evil stuff
             let lastLog = "";
             let spamCount = 1;
-            
+
             const original = process.stdout.write.bind(process.stdout);
             process.stdout.write = (buffer: string, db: any) => {
                 if (typeof buffer === "string" && lastLog === buffer && buffer.startsWith("Aniketos".red)) {
@@ -163,7 +163,7 @@ export class Aniketos {
                     } else {
                         output.error(this.translate("base.command.error.configSave"));
                     }
-                }, { action: command.enum("aniketos.config", { "config": 0 }), key: command.enum("Key", 
+                }, { action: command.enum("aniketos.config", { "config": 0 }), key: command.enum("Key",
                     {
                         "whitelist-ops": "whitelist-ops",
                         "console-log-suspect": "console-log-suspect",
@@ -332,7 +332,7 @@ export class Aniketos {
                     if (DB.uuid(player) === entry.value) {
                         return true;
                     }
-                    break;  
+                    break;
                 case "xuid":
                     if (DB.xuid(player) === entry.value) {
                         return true;
@@ -343,7 +343,7 @@ export class Aniketos {
         return false;
     }
 
-    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: T): void {
+    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void {
         event.on(listener);
         events.serverStop.on(() => {
             event.remove(listener);
@@ -368,14 +368,14 @@ export class Aniketos {
             _module.listeners = [];
             module.translate = (str, params) => this.translate(`modules.${name}.${str}`, params);
             module.log = message => this.log(module.info().name.magenta + " " + message);
-            module.listen = <T extends (...args: any[]) => any>(event: Event<T>, listener: T): void => {
+            module.listen = <T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void => {
                 event.on(listener);
                 _module.listeners.push([event, listener]);
             };
             module.registerCommand = (callback, parameters) => {
                 const cmdName = name.toLowerCase();
                 bedrockServer.afterOpen().then(() => {
-                    const signature = serverInstance.minecraft.getCommands().getRegistry().findCommand(cmdName);
+                    const signature = bedrockServer.commandRegistry.findCommand(cmdName);
                     if (signature) {
                         signature.permissionLevel = CommandPermissionLevel.Operator;
                     }
