@@ -1,7 +1,7 @@
 import { MinecraftPacketIds } from "bdsx/bds/packetids";
 import { PlayerActionPacket } from "bdsx/bds/packets";
-import { serverInstance } from "bdsx/bds/server";
 import { events } from "bdsx/event";
+import { bedrockServer } from "bdsx/launcher";
 import { DB, Utils } from "../../utils";
 import { ModuleBase, ModuleConfig } from "../base";
 
@@ -22,7 +22,7 @@ export default class Freecam extends ModuleBase {
                 const laternacy = Date.now() - last - Utils.getPing(ni);
                 if (last !== 0 && (laternacy > 3000)) {
                     this.suspect(ni, this.translate("suspect.generic", [laternacy.toString()]));
-                    serverInstance.disconnectClient(ni, "disconnectionScreen.timeout");
+                    bedrockServer.serverInstance.disconnectClient(ni, "disconnectionScreen.timeout");
                 }
                 DB.setPlayerData(ni, Date.now(), "Freecam.last");
              }

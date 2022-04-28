@@ -39,9 +39,9 @@ export namespace Utils {
     }
     export function getPing(ni: NetworkIdentifier) {
         if (ni.toString().split("|")[0] === "127.0.0.1") {
-            return serverInstance.networkHandler.instance.peer.GetLastPing(ni.address) - 30;
+            return bedrockServer.rakPeer.GetLastPing(ni.address) - 30;
         }
-        return serverInstance.networkHandler.instance.peer.GetLastPing(ni.address);
+        return bedrockServer.rakPeer.GetLastPing(ni.address);
     }
     export function formatString(str: string,  params:string[] = []) {
         if (params.length === 0) {

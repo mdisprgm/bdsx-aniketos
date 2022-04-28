@@ -383,7 +383,6 @@ export class Aniketos {
                         _module.command = command.register(cmdName, this.translate("base.module.command.desc.generic", [module.info().name]), CommandPermissionLevel.Operator);
                     }
                     _module.command.overload(callback, parameters ?? {});
-                    serverInstance.updateCommandList();
                 });
             }
             _module.repairConfig = () => {
@@ -433,11 +432,11 @@ export class Aniketos {
             }
             if (_module.command) {
                 bedrockServer.afterOpen().then(() => {
-                    const signature = serverInstance.minecraft.getCommands().getRegistry().findCommand(module.constructor.name.toLowerCase());
+                    const signature = command.find(module.constructor.name.toLowerCase()).signature;
                     if (signature) {
                         signature.overloads.splice(0, signature.overloads.size());
                         signature.permissionLevel = CommandPermissionLevel.Internal;
-                        serverInstance.updateCommandList();
+                        // serverInstance.updateCommandList();
                     }
                 });
             }
