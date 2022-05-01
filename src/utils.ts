@@ -9,8 +9,6 @@ import { bedrockServer } from "bdsx/launcher";
 import { bool_t, uint8_t } from "bdsx/nativetype";
 import { procHacker } from "bdsx/prochacker";
 
-const serverInstance = bedrockServer.serverInstance;
-
 export namespace Utils {
     export type ReturnPromise<T extends (...args: any[]) => number | CANCEL | void | Promise<void>> = T extends (...args: infer ARGS) => infer RET
         ? (...args: ARGS) => RET | Promise<void>
@@ -26,14 +24,14 @@ export namespace Utils {
         return bedrockServer.level.getCurrentTick();
     }
     export function getOnlineOperators(): ServerPlayer[] {
-        return serverInstance.getPlayers().filter(p => p.getPermissionLevel() === PlayerPermission.OPERATOR);
+        return bedrockServer.serverInstance.getPlayers().filter(p => p.getPermissionLevel() === PlayerPermission.OPERATOR);
     }
     export function isCreativeLikeModes(player: ServerPlayer) {
         const mode = player.getGameType();
         return mode === 1 || mode === 4;
     }
     export function broadcastPacket(pk: Packet) {
-        for (const player of serverInstance.getPlayers()) {
+        for (const player of bedrockServer.serverInstance.getPlayers()) {
             player.sendPacket(pk);
         }
     }
