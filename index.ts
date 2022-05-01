@@ -36,7 +36,7 @@ events.levelTick.once((ev) => {
     aniketos.loadModule(new Freecam());
     aniketos.loadModule(new Gamemode());
     aniketos.loadModule(new Give());
-    aniketos.loadModule(new InventoryMove());
+    // aniketos.loadModule(new InventoryMove());
     aniketos.loadModule(new Namespoof());
     aniketos.loadModule(new NoSwing());
     aniketos.loadModule(new Nuker());
