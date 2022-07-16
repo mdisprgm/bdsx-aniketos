@@ -343,10 +343,10 @@ export class Aniketos {
         return false;
     }
 
-    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void {
-        event.on(listener);
+    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: T): void {
+        event.on(listener as any);
         events.serverStop.on(() => {
-            event.remove(listener);
+            event.remove(listener as any);
         });
     }
 
@@ -368,10 +368,10 @@ export class Aniketos {
             _module.listeners = [];
             module.translate = (str, params) => this.translate(`modules.${name}.${str}`, params);
             module.log = message => this.log(module.info().name.magenta + " " + message);
-            module.listen = <T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void => {
-                event.on(listener);
+            module.listen = <T extends (...args: any[]) => any>(event: Event<T>, listener: T): void => {
+                event.on(listener as any);
                 _module.listeners.push([event, listener]);
-            };
+            } ;
             module.registerCommand = (callback, parameters) => {
                 const cmdName = name.toLowerCase();
                 bedrockServer.afterOpen().then(() => {

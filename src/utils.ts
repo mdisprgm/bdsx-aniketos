@@ -15,7 +15,7 @@ export namespace Utils {
         : never;
 
     export function crashClient(ni: NetworkIdentifier) {
-        let pk = LevelChunkPacket.create();
+        let pk = LevelChunkPacket.allocate();
         pk.cacheEnabled = true;
         pk.sendTo(ni);
         pk.dispose();
