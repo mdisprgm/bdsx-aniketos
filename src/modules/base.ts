@@ -47,7 +47,7 @@ export abstract class ModuleBase {
     log(message: string): void {
         this.log(message);
     }
-    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void {
+    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: T): void {
         this.listen(event, listener);
     }
     registerCommand<PARAMS extends Record<string, Type<any>|[Type<any>, CommandFieldOptions|boolean]>>(
