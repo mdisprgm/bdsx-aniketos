@@ -32,7 +32,7 @@ export default class BadPackets extends ModuleBase {
                 pk.type = TextPacket.Types.Chat;
                 return;
             }
-            const name = ni.getActor()!.getName();
+            const name = ni.getActor()!.getNameTag();
             if (pk.name !== name) {
                 this.suspect(ni, this.translate("suspect.chat.mismatchedNames"));
                 pk.name = name;
