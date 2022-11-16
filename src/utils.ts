@@ -3,14 +3,14 @@ import { Packet } from "bdsx/bds/packet";
 import { MinecraftPacketIds } from "bdsx/bds/packetids";
 import { LevelChunkPacket, LoginPacket, PlayerAuthInputPacket } from "bdsx/bds/packets";
 import { PlayerPermission, ServerPlayer } from "bdsx/bds/player";
-import { CANCEL } from "bdsx/common";
 import { events } from "bdsx/event";
+import { Event } from "bdsx/eventtarget";
 import { bedrockServer } from "bdsx/launcher";
 import { bool_t, uint8_t } from "bdsx/nativetype";
 import { procHacker } from "bdsx/prochacker";
 
 export namespace Utils {
-    export type ReturnPromise<T extends (...args: any[]) => number | CANCEL | void | Promise<void>> = T extends (...args: infer ARGS) => infer RET
+    export type ReturnPromise<T extends (...args: any[]) => Event.ReturnType> = T extends (...args: infer ARGS) => infer RET
         ? (...args: ARGS) => RET | Promise<void>
         : never;
 

@@ -1,6 +1,3 @@
-import fs = require("fs");
-import vm = require("vm");
-import path = require("path");
 import { CommandPermissionLevel } from "bdsx/bds/command";
 import { NetworkIdentifier } from "bdsx/bds/networkidentifier";
 import { command } from "bdsx/command";
@@ -9,9 +6,12 @@ import { events } from "bdsx/event";
 import { Event } from "bdsx/eventtarget";
 import { bedrockServer } from "bdsx/launcher";
 import { bool_t, CxxString } from "bdsx/nativetype";
+import * as fs from "fs";
+import * as path from "path";
+import * as vm from "vm";
 import { ModuleBase, ModuleConfig } from "./modules/base";
 import { DB, Utils } from "./utils";
-var JSONC = require("comment-json");
+const JSONC = require("comment-json");
 
 const serverInstance = bedrockServer.serverInstance;
 interface WhitelistEntry {
@@ -81,7 +81,7 @@ export class Aniketos {
     private lang: Language;
 
     private langModel = () => {
-    /**
+        /**
         moduleLoaded=Loaded module.
         moduleUnloaded=Unloaded module.
 
@@ -105,7 +105,8 @@ export class Aniketos {
         command.output.configChange=%s has been changed.
 
         module.command.desc.generic=Configures module %s of Aniketos.
-    */};
+    */
+    };
 
     constructor() {
         this.reloadConfig();
@@ -156,78 +157,96 @@ export class Aniketos {
             if (this.config["command"]) {
                 const factory = command.register("aniketos", this.translate("base.command.desc"), CommandPermissionLevel.Operator);
 
-                factory.overload((params, origin, output) => {
-                    (this.config as any)[params.key] = params.value;
-                    if (this.saveConfig()) {
-                        output.success(this.translate("base.command.output.configChange", [params.key]));
-                    } else {
-                        output.error(this.translate("base.command.error.configSave"));
-                    }
-                }, { action: command.enum("aniketos.config", { "config": 0 }), key: command.enum("Key",
+                factory.overload(
+                    (params, origin, output) => {
+                        (this.config as any)[params.key] = params.value;
+                        if (this.saveConfig()) {
+                            output.success(this.translate("base.command.output.configChange", [params.key]));
+                        } else {
+                            output.error(this.translate("base.command.error.configSave"));
+                        }
+                    },
                     {
-                        "whitelist-ops": "whitelist-ops",
-                        "console-log-suspect": "console-log-suspect",
-                    }), value: bool_t});
+                        action: command.enum("aniketos.config", { config: 0 }),
+                        key: command.enum("Key", {
+                            "whitelist-ops": "whitelist-ops",
+                            "console-log-suspect": "console-log-suspect",
+                        }),
+                        value: bool_t,
+                    },
+                );
 
-                factory.overload((params, origin, output) => {
-                    const config = this.config.modules[params.module];
-                    const module = this.modules.find(m => m.constructor.name === params.module);
-                    if (config && module) {
-                        config.enabled = false;
-                        this.saveConfig();
-                        this.unloadModule(module);
-                        output.success(this.translate("base.command.output.moduleDisable", [params.module]));
-                    } else {
-                        if (this.cachedModules.find(m => m.constructor.name === params.module)) {
-                            output.error(this.translate("base.command.error.moduleNotLoaded", [params.module]));
+                factory.overload(
+                    (params, origin, output) => {
+                        const config = this.config.modules[params.module];
+                        const module = this.modules.find((m) => m.constructor.name === params.module);
+                        if (config && module) {
+                            config.enabled = false;
+                            this.saveConfig();
+                            this.unloadModule(module);
+                            output.success(this.translate("base.command.output.moduleDisable", [params.module]));
                         } else {
-                            output.error(this.translate("base.command.error.moduleNotFound", [params.module]));
+                            if (this.cachedModules.find((m) => m.constructor.name === params.module)) {
+                                output.error(this.translate("base.command.error.moduleNotLoaded", [params.module]));
+                            } else {
+                                output.error(this.translate("base.command.error.moduleNotFound", [params.module]));
+                            }
                         }
-                    }
-                }, { action: command.enum("aniketos.disable", { "disable": 0 }), module: CxxString });
+                    },
+                    { action: command.enum("aniketos.disable", { disable: 0 }), module: CxxString },
+                );
 
-                factory.overload((params, origin, output) => {
-                    const config = this.config.modules[params.module];
-                    const module = this.cachedModules.find(m => m.constructor.name === params.module);
-                    if (config && module) {
-                        config.enabled = true;
-                        this.saveConfig();
-                        this.loadModule(module);
-                        output.success(this.translate("base.command.output.moduleEnable", [params.module]));
-                    } else {
-                        if (this.modules.find(m => m.constructor.name === params.module)) {
-                            output.error(this.translate("base.command.error.moduleAlreadyLoaded", [params.module]));
+                factory.overload(
+                    (params, origin, output) => {
+                        const config = this.config.modules[params.module];
+                        const module = this.cachedModules.find((m) => m.constructor.name === params.module);
+                        if (config && module) {
+                            config.enabled = true;
+                            this.saveConfig();
+                            this.loadModule(module);
+                            output.success(this.translate("base.command.output.moduleEnable", [params.module]));
                         } else {
-                            output.error(this.translate("base.command.error.moduleNotFound", [params.module]));
+                            if (this.modules.find((m) => m.constructor.name === params.module)) {
+                                output.error(this.translate("base.command.error.moduleAlreadyLoaded", [params.module]));
+                            } else {
+                                output.error(this.translate("base.command.error.moduleNotFound", [params.module]));
+                            }
                         }
-                    }
-                }, { action: command.enum("aniketos.enable", { "enable": 0 }), module: CxxString });
+                    },
+                    { action: command.enum("aniketos.enable", { enable: 0 }), module: CxxString },
+                );
 
-                factory.overload((params, origin, output) => {
-                    let message = this.translate("base.command.output.activeModules", [this.modules.length.toString()]);
-                    for (const module of this.modules) {
-                        const info = module.info();
-                        message += `\n - §5${info.name}§r: §7${info.description}§r`;
-                    }
-                    message += "\n" + this.translate("base.command.output.inactiveModules", [this.cachedModules.length.toString()]);
-                    for (const module of this.cachedModules) {
-                        const info = module.info();
-                        message += `\n - §5${info.name}§r: §7${info.description}§r`;
-                    }
-                    output.success(message);
-                }, { action: command.enum("aniketos.list", { "list": 0 }) });
+                factory.overload(
+                    (params, origin, output) => {
+                        let message = this.translate("base.command.output.activeModules", [this.modules.length.toString()]);
+                        for (const module of this.modules) {
+                            const info = module.info();
+                            message += `\n - §5${info.name}§r: §7${info.description}§r`;
+                        }
+                        message += "\n" + this.translate("base.command.output.inactiveModules", [this.cachedModules.length.toString()]);
+                        for (const module of this.cachedModules) {
+                            const info = module.info();
+                            message += `\n - §5${info.name}§r: §7${info.description}§r`;
+                        }
+                        output.success(message);
+                    },
+                    { action: command.enum("aniketos.list", { list: 0 }) },
+                );
 
-                factory.overload((params, origin, output) => {
-                    this.reloadConfig();
-                    for (const module of this.modules) {
-                        this.unloadModule(module);
-                    }
-                    const _cachedModules = [...this.cachedModules];
-                    for (const module of _cachedModules) {
-                        this.loadModule(module);
-                    }
-                    output.success(this.translate("base.command.output.moduleReload"));
-                }, { action: command.enum("aniketos.reload", { "reload": 0 })});
+                factory.overload(
+                    (params, origin, output) => {
+                        this.reloadConfig();
+                        for (const module of this.modules) {
+                            this.unloadModule(module);
+                        }
+                        const _cachedModules = [...this.cachedModules];
+                        for (const module of _cachedModules) {
+                            this.loadModule(module);
+                        }
+                        output.success(this.translate("base.command.output.moduleReload"));
+                    },
+                    { action: command.enum("aniketos.reload", { reload: 0 }) },
+                );
             }
         });
     }
@@ -236,7 +255,7 @@ export class Aniketos {
         suspect: new Event<(event: Aniketos.ModuleEvent) => void | CANCEL>(),
         warn: new Event<(event: Aniketos.ModuleEvent) => void | CANCEL>(),
         punish: new Event<(event: Aniketos.ModuleEvent) => void | CANCEL>(),
-    }
+    };
 
     private loadLanguage() {
         let locale = this.config.lang;
@@ -255,7 +274,7 @@ export class Aniketos {
                 this.log(this.translate("base.error.noDefaultLangFile", [locale]));
                 try {
                     fs.writeFileSync(path.join(__dirname, `./texts/${locale}.lang`), Language.stringify(this.lang));
-                } catch { }
+                } catch {}
             }
         }
     }
@@ -263,7 +282,7 @@ export class Aniketos {
     private reloadConfig(): boolean {
         try {
             this.config = JSONC.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
-            const configModel = new Config;
+            const configModel = new Config();
             let modified = false;
             for (const prop in configModel) {
                 if (!this.config.hasOwnProperty(prop)) {
@@ -277,7 +296,7 @@ export class Aniketos {
             return true;
         } catch {
             if (!this.config) {
-                this.config = new Config;
+                this.config = new Config();
                 this.saveConfig();
                 return true;
             }
@@ -303,7 +322,7 @@ export class Aniketos {
 
     getModuleFromFile(src: string): ModuleBase | null {
         const context = {
-            exports: { default: void(0) as any },
+            exports: { default: void 0 as any },
             require: (id: string) => require(id.replace(/^\.\//, "./modules/")),
         };
         vm.createContext(context);
@@ -343,10 +362,10 @@ export class Aniketos {
         return false;
     }
 
-    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: T): void {
-        event.on(listener as any);
+    listen<T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void {
+        event.on(listener);
         events.serverStop.on(() => {
-            event.remove(listener as any);
+            event.remove(listener);
         });
     }
 
@@ -361,17 +380,17 @@ export class Aniketos {
             }
             this.lang.appendModuleLang(module.langModel, `modules.${name}`);
             // if (this.lang.unfinished) {
-                try {
-                    fs.writeFileSync(path.join(__dirname, `./texts/${this.lang.locale}.lang`), Language.stringify(this.lang));
-                } catch { }
+            try {
+                fs.writeFileSync(path.join(__dirname, `./texts/${this.lang.locale}.lang`), Language.stringify(this.lang));
+            } catch {}
             // }
             _module.listeners = [];
             module.translate = (str, params) => this.translate(`modules.${name}.${str}`, params);
-            module.log = message => this.log(module.info().name.magenta + " " + message);
-            module.listen = <T extends (...args: any[]) => any>(event: Event<T>, listener: T): void => {
-                event.on(listener as any);
+            module.log = (message) => this.log(module.info().name.magenta + " " + message);
+            module.listen = <T extends (...args: any[]) => any>(event: Event<T>, listener: Utils.ReturnPromise<T>): void => {
+                event.on(listener);
                 _module.listeners.push([event, listener]);
-            } ;
+            };
             module.registerCommand = (callback, parameters) => {
                 const cmdName = name.toLowerCase();
                 bedrockServer.afterOpen().then(() => {
@@ -380,14 +399,18 @@ export class Aniketos {
                         signature.permissionLevel = CommandPermissionLevel.Operator;
                     }
                     if (!_module.command) {
-                        _module.command = command.register(cmdName, this.translate("base.module.command.desc.generic", [module.info().name]), CommandPermissionLevel.Operator);
+                        _module.command = command.register(
+                            cmdName,
+                            this.translate("base.module.command.desc.generic", [module.info().name]),
+                            CommandPermissionLevel.Operator,
+                        );
                     }
                     _module.command.overload(callback, parameters ?? {});
                 });
-            }
+            };
             _module.repairConfig = () => {
-                const configModel = new module.configModel;
-                let modified = false
+                const configModel = new module.configModel();
+                let modified = false;
                 for (const prop in configModel) {
                     if (!this.config.modules[name].hasOwnProperty(prop)) {
                         (this.config.modules[name] as any)[prop] = (configModel as any)[prop];
@@ -397,20 +420,20 @@ export class Aniketos {
                 if (modified) {
                     this.saveConfig();
                 }
-            }
+            };
             _module.repairConfig();
             module.getCore = () => this;
             module.getConfig = () => {
                 this.config["modules"][name];
                 _module.repairConfig();
                 return this.config["modules"][name];
-            }
-            module.setConfig = config => {
-                this.config["modules"][name] = config
+            };
+            module.setConfig = (config) => {
+                this.config["modules"][name] = config;
                 return this.saveConfig();
             };
             if (config && config.enabled === false) {
-                const index = this.cachedModules.findIndex(m => m.constructor.name === module.constructor.name);
+                const index = this.cachedModules.findIndex((m) => m.constructor.name === module.constructor.name);
                 index === -1 && this.cachedModules.push(module);
                 return;
             }
@@ -419,7 +442,7 @@ export class Aniketos {
             module.log(this.translate("base.moduleLoaded"));
             this.modules.push(module);
             {
-                const index = this.cachedModules.findIndex(m => m.constructor.name === module.constructor.name);
+                const index = this.cachedModules.findIndex((m) => m.constructor.name === module.constructor.name);
                 index !== -1 && this.cachedModules.splice(index, 1);
             }
         }
@@ -444,7 +467,7 @@ export class Aniketos {
             module.log(this.translate("base.moduleUnloaded"));
             this.cachedModules.push(module);
             {
-                const index = this.modules.findIndex(m => m.constructor.name === module.constructor.name);
+                const index = this.modules.findIndex((m) => m.constructor.name === module.constructor.name);
                 index !== -1 && this.modules.splice(index, 1);
             }
         }
